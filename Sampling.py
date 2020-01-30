@@ -46,7 +46,7 @@ def compute_mean_proportion_variance_gamma(numOfTuples, strata_dict):
         stratum['mean'] = round(stratum_val_sum/len(stratum['tuples']), 2)
         stratum['variance'] = round(max_value - min_value, 2)
         stratum['proportion'] = round(len(stratum['tuples'])/numOfTuples, 2)
-        stratum['gamma'] = round(stratum['variance']/stratum['mean'], 2)  # gamma for weight 1
+        stratum['gamma'] =  0 if stratum['mean']==0 else round(stratum['variance']/stratum['mean'], 2)  # gamma for weight 1
         total_gamma += stratum['gamma']
     print("Total gamma is : ", total_gamma)
 
