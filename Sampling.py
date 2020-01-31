@@ -9,7 +9,7 @@
 #   Tuples Generated: <name, value> using random builtin Python library (normal Distribution)
 #   Tuples grouped by "name"
 #
-#
+#   Samples chosen by reservoir sampling
 #
 
 
@@ -18,6 +18,7 @@ import pprint
 import math
 
 StrataDict = dict()
+SampleDict = dict()
 tuple_counter = 0
 M = 100
 suzyIsNotGone = True
@@ -33,8 +34,8 @@ def generate_tuple(name=None):
     return new_tuple
 
 
-def search_for_key(cur_tuple, strata_dict):
-    for key in strata_dict.keys():
+def search_for_key(cur_tuple):
+    for key in StrataDict.keys():
         if key == cur_tuple['key']:
             return True
     return False
@@ -52,9 +53,9 @@ def initialize_stratum():
     return stratum
 
 
-def compute_mean_proportion_variance_gamma(numOfTuples, strata_dict):
+def compute_mean_proportion_variance_gamma(numOfTuples):
     total_gamma = 0
-    for stratum in strata_dict.values():
+    for stratum in StrataDict.values():
         min_value = 21
         max_value = -1
         stratum_val_sum = 0
@@ -82,7 +83,7 @@ def compute_mean_proportion_variance_gamma(numOfTuples, strata_dict):
     return total_gamma
 
 
-def compute_sample_size(strata_dict, total_gamma):
+def compute_sample_size(total_gamma):
     # Rules:
     # 1. At least 1 sample per stratum
     # 2. No more Samples than M
@@ -91,7 +92,7 @@ def compute_sample_size(strata_dict, total_gamma):
     total_samples_assigned = 0
 
     # for each stratum, we compare the rounded
-    for s_key, stratum in strata_dict.items():
+    for s_key, stratum in StrataDict.items():
         stratum['Si'] = round(M*stratum['gamma']/total_gamma)
         if stratum['Si'] == 0:
             stratum['Si'] += 1
@@ -107,7 +108,7 @@ def compute_sample_size(strata_dict, total_gamma):
     # if total samples assigned are more than the memory budget
     if total_samples_assigned != M:
         difference = M - total_samples_assigned
-        strata_dict[max_s_key]['Si'] += difference
+        StrataDict[max_s_key]['Si'] += difference
 
 
 def strata_pretty_print():
@@ -129,6 +130,33 @@ def generate_biased_tuple():
     return cur_tuple
 
 
+def reservoir_sampling(skip_step=0):
+
+    for key, stratum in StrataDict.items():
+        sample_counter = 0
+        if key not in SampleDict.keys():
+            SampleDict[key] = []
+
+        for cur_tuple in stratum['tuples']:
+            if sample_counter == 0:
+                # we first wanna know under whch probability the tuple will be sampled
+                # in reservoir sampling is 1/tuple_index
+                # 1st tuple p=1/1, 2nd tuple p = 1/2, 3rd p = 1/3 and so on
+                sampling_probability = 1/(stratum['tuples'].index(cur_tuple) + 1)
+
+                # we sample under this probability if our sample is not full
+                if len(SampleDict[key]) < stratum['Si']:
+                    if sampling_probability > random.random():
+                        SampleDict[key].append(cur_tuple)
+                        sample_counter = skip_step
+            elif sample_counter > 0:
+                sample_counter -= 1
+
+
+def reservoir_sample_print():
+    pprint.PrettyPrinter().pprint(SampleDict)
+
+
 # Main Function
 
 # generating 1000 tuples
@@ -141,13 +169,15 @@ for x in range(0, 1000):
     tuple_counter += 1
 
     # making buckets for tuples
-    if not search_for_key(cur_tuple, StrataDict):
+    if not search_for_key(cur_tuple):
         StrataDict[cur_tuple['key']] = initialize_stratum()
 
     StrataDict[cur_tuple['key']]['tuples'].append(cur_tuple)
 
 
-total_gamma = compute_mean_proportion_variance_gamma(tuple_counter, StrataDict)
-compute_sample_size(StrataDict, total_gamma)
+total_gamma = compute_mean_proportion_variance_gamma(tuple_counter)
+compute_sample_size(total_gamma)
+reservoir_sampling()
 strata_sample_print()
+reservoir_sample_print()
 
