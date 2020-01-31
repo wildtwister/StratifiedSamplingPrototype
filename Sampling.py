@@ -1,3 +1,18 @@
+#
+#   Stratified Sampling in Python
+#   Based on "Random Sampling for Group-By Queries" paper
+#   by Nguyen et al
+#   author: Panagiotis Savvaidis
+#
+#   Implementing Single Aggregate - Single GroupBy Algorithm
+#
+#   Tuples Generated: <name, value> using random builtin Python library (normal Distribution)
+#   Tuples grouped by "name"
+#
+#
+#
+
+
 import random
 import pprint
 import math
@@ -54,10 +69,13 @@ def compute_mean_proportion_variance_gamma(numOfTuples, strata_dict):
         stratum['mean'] = round(stratum_val_sum/len(stratum['tuples']), 2)
         stratum['variance'] = round(max_value - min_value, 2)
         stratum['proportion'] = round(len(stratum['tuples'])/numOfTuples, 2)
+
         # gamma for weight 1
         # stratum['gamma'] = 0 if stratum['mean'] == 0 else round(stratum['variance']/stratum['mean'], 2)
+
         # gamma for weight equal to the proportion
         stratum['gamma'] = 0 if stratum['mean'] == 0 else round(math.sqrt(stratum['proportion'])*stratum['variance']/stratum['mean'], 2)
+
         total_gamma += stratum['gamma']
 
     print("Total gamma is : ", total_gamma)
@@ -112,11 +130,17 @@ def generate_biased_tuple():
 
 
 # Main Function
+
+# generating 1000 tuples
 for x in range(0, 1000):
 
     cur_tuple = generate_tuple()
+    # there is also a generate_biased_tuple() method
+    # that can be tuned by the user
+
     tuple_counter += 1
 
+    # making buckets for tuples
     if not search_for_key(cur_tuple, StrataDict):
         StrataDict[cur_tuple['key']] = initialize_stratum()
 
