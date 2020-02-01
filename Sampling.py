@@ -21,7 +21,6 @@ StrataDict = dict()
 SampleDict = dict()
 tuple_counter = 0
 M = 100
-suzyIsNotGone = True
 
 
 def generate_tuple(name=None):
