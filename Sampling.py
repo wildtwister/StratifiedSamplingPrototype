@@ -32,14 +32,6 @@ def generate_tuple(name=None):
 
     return new_tuple
 
-
-def search_for_key(cur_tuple):
-    for key in StrataDict.keys():
-        if key == cur_tuple['key']:
-            return True
-    return False
-
-
 def initialize_stratum():
     stratum = dict()
     stratum['mean'] = 0.0
@@ -157,7 +149,7 @@ def reservoir_sample_print():
 
 
 # Main Function
-
+M = 100
 # generating 1000 tuples
 for x in range(0, 1000):
 
@@ -168,7 +160,7 @@ for x in range(0, 1000):
     tuple_counter += 1
 
     # making buckets for tuples
-    if not search_for_key(cur_tuple):
+    if not cur_tuple['key'] in StrataDict.keys():
         StrataDict[cur_tuple['key']] = initialize_stratum()
 
     StrataDict[cur_tuple['key']]['tuples'].append(cur_tuple)
